@@ -1,11 +1,9 @@
-# --- algoritmos.py ---
 from collections import deque
 import heapq
 
 START, END, WALL, PATH = 'S', 'E', '#', ' '
 
 def _obtener_vecinos_grilla(nodo, laberinto):
-    # ... (Sin cambios)
     vecinos, (r, c) = [], nodo
     alto, ancho = len(laberinto), len(laberinto[0])
     if r > 0 and laberinto[r - 1][c] != WALL: vecinos.append((r - 2, c))
@@ -127,8 +125,6 @@ def _wall_follower(laberinto, inicio, fin, direccion_mano):
 
     for _ in range(max_pasos):
         if pos == fin:
-            # --- CORRECCIÓN 1 ---
-            # Si tiene éxito, devolvemos 3 valores: el camino, los nodos visitados (que son el propio camino), y el costo (número de pasos).
             return camino, set(camino), len(camino)
 
         orientacion_palpar = (orientacion + giro_mano + 4) % 4
@@ -160,9 +156,6 @@ def _wall_follower(laberinto, inicio, fin, direccion_mano):
             pos = (pos[0] + dirs[orientacion][0], pos[1] + dirs[orientacion][1])
             camino.append(pos)
             
-    # --- CORRECCIÓN 2 ---
-    # Si termina el bucle (se excede max_pasos) sin encontrar el final, falla.
-    # Devolvemos 3 valores: sin camino, los nodos que sí visitó, y un costo infinito.
     return None, set(camino), float('inf')
 
 def encontrar_camino_wall_follower_right(laberinto, inicio, fin):

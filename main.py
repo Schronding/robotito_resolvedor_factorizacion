@@ -1,4 +1,4 @@
-# --- main.py ---
+# Hola profe :D
 from algoritmos import *
 from utils import *
 from comunicacion_arduino import *
@@ -8,13 +8,13 @@ laberinto_real_str = [
 
     # A B C D E F G H I J
     "#####################", # 1 superior  - 1 absoluto
-    "#S# #     #     # # #", # 1 medio     - 2 absoluto
+    "# # #     #     # # #", # 1 medio     - 2 absoluto
     "# # # ##### ##### # #", # 1 inferior  - 3 absoluto
-    "#         #         #", # 2 medio     - 4 absoluto
+    "#    S    #      E  #", # 2 medio     - 4 absoluto
     "#####   ### ### #####", # 2 inferior  - 5 absoluto
     "# #     # # # # #   #", # 3 medio     - 6 absoluto
     "# ### ### # # # # # #", # 3 inferior  - 7 absoluto
-    "#               #E# #", # 4 medio     - 8 absoluto
+    "#               # # #", # 4 medio     - 8 absoluto
     "# ### ### ##### ### #", # 4 inferior  - 9 absoluto
     "# #   #       #     #", # 5 medio    - 10 absoluto
     "#####################", # 5 inferior - 11 absoluto
@@ -52,7 +52,6 @@ def main():
     resultados = {}
     for nombre, func_algoritmo in algoritmos.items():
         print(f"\nEjecutando algoritmo: {nombre}...")
-        # AHORA RECIBIMOS TRES VALORES
         camino, visitados, costo = func_algoritmo(laberinto_real_str, inicio, fin)
         
         if camino:
@@ -61,7 +60,7 @@ def main():
                 "camino": camino,
                 "visitados": visitados,
                 "pasos": len(camino),
-                "costo": costo,  # <-- GUARDAMOS EL NUEVO DATO
+                "costo": costo,  
                 "instrucciones": convertir_camino_a_instrucciones(camino)
             }
         else:

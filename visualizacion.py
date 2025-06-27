@@ -1,4 +1,3 @@
-# --- visualizacion.py ---
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -31,9 +30,7 @@ def visualizar_resultados(laberinto_str, resultados, inicio, fin):
     camino_optimo = caminos_validos[mejor_nombre_por_costo]['camino']
     print(f"\nVisualización: El camino de menor costo es el de '{mejor_nombre_por_costo}'.")
 
-    # =============================================================
     # --- 3. GENERAR GRÁFICO COMBINADO (CON LEYENDA SIMPLE) ---
-    # =============================================================
     print("Generando gráfico combinado de caminos...")
     fig_comb, ax_comb = plt.subplots(figsize=(12, 6))
     fig_comb.subplots_adjust(right=0.75)
@@ -50,12 +47,10 @@ def visualizar_resultados(laberinto_str, resultados, inicio, fin):
         if nombre == mejor_nombre_por_costo:
             continue
         else:
-            # *** CAMBIO AQUÍ: La etiqueta ahora es solo el nombre del algoritmo ***
             ax_comb.plot(x_coords, y_coords, linestyle='-', color=colores[color_idx % len(colores)], label=nombre)
             color_idx += 1
 
     y_opt, x_opt = zip(*camino_optimo)
-    # *** CAMBIO AQUÍ: La etiqueta para el camino óptimo es más simple ***
     label_optimo = f"{mejor_nombre_por_costo} (Óptimo)"
     ax_comb.plot(x_opt, y_opt, linestyle='-', color='red', linewidth=3, label=label_optimo, zorder=10)
 
@@ -72,9 +67,7 @@ def visualizar_resultados(laberinto_str, resultados, inicio, fin):
     print(f"- Gráfico combinado guardado en '{nombre_archivo_combinado}'")
     plt.close(fig_comb)
 
-    # ==================================================================
-    # --- 4. GENERAR GRÁFICOS INDIVIDUALES (Estos no cambian) ---
-    # ==================================================================
+    # --- 4. GENERAR GRÁFICOS INDIVIDUALES  ---
     print("\nGenerando gráficos individuales...")
     for nombre, data in resultados.items():
         camino = data.get("camino")

@@ -1,16 +1,13 @@
-# --- comunicacion_arduino.py ---
 import serial
 import time
 import sys
 
-# Usamos las constantes que ya has calibrado.
-PUERTO_ARDUINO = '/dev/ttyUSB0'  # Puerto fijo, como en tu código original.
+PUERTO_ARDUINO = '/dev/ttyUSB0'  # Puerto fijo
 BAUD_RATE = 9600
 
 def manejar_comunicacion_con_arduino(ranking_resultados):
     """
     Inicia el menú interactivo para enviar comandos al Arduino.
-    Esta función contiene la lógica de comunicación que ya habías validado.
     """
     if not ranking_resultados:
         print("No se encontraron caminos para enviar al Arduino.")
@@ -24,7 +21,7 @@ def manejar_comunicacion_con_arduino(ranking_resultados):
         with serial.Serial(port=PUERTO_ARDUINO, baudrate=BAUD_RATE, timeout=2) as arduino:
             print(f"¡Conexión exitosa con {arduino.name}!")
             print("Esperando 2 segundos para que el Arduino se inicialice...")
-            time.sleep(2)  # Pausa crítica que tu código original incluía.
+            time.sleep(2)  # Pausa crítica 
 
             # Limpiar cualquier dato inicial en el buffer de entrada del Arduino
             while arduino.in_waiting > 0:
@@ -32,7 +29,7 @@ def manejar_comunicacion_con_arduino(ranking_resultados):
                 if linea:
                     print(f"Arduino (mensaje de inicio): {linea}")
 
-            # Bucle de menú interactivo, como en tu versión funcional
+            # Bucle de menú interactivo
             while True:
                 print("\n--- MENÚ DE COMANDOS DE ARDUINO ---")
                 prompt_message = (

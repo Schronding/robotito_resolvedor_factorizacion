@@ -1,4 +1,3 @@
-# utils.py
 import time
 
 # --- Definiciones del Laberinto ---
@@ -49,7 +48,6 @@ def parse_laberinto(laberinto_str_list):
         
     return mapa_numerico, pos_inicio, pos_fin, height, width
 
-# ... otras funciones de utils ...
 def crear_grafo_desde_laberinto(laberinto_str_list):
     """
     Toma una lista de strings representando el laberinto en rejilla duplicada
