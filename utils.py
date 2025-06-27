@@ -50,6 +50,48 @@ def parse_laberinto(laberinto_str_list):
     return mapa_numerico, pos_inicio, pos_fin, height, width
 
 # ... otras funciones de utils ...
+def crear_grafo_desde_laberinto(laberinto_str_list):
+    """
+    Toma una lista de strings representando el laberinto en rejilla duplicada
+    y la convierte en un grafo (representado como una lista de adyacencia).
+    Esta es la función central que traduce el mapa en una estructura navegable.
+    """
+    grafo = {}
+    alto = len(laberinto_str_list)
+    ancho = len(laberinto_str_list[0])
+    
+    # Recorremos solo las posiciones de las celdas (coordenadas impares)
+    for r in range(1, alto, 2):
+        for c in range(1, ancho, 2):
+            # La celda es un nodo válido en el grafo.
+            nodo_actual = (r, c)
+            grafo[nodo_actual] = []
+            
+            # Checar vecinos usando la lógica correcta de la rejilla duplicada
+            # Arriba
+            if r > 0 and laberinto_str_list[r - 1][c] != '#':
+                grafo[nodo_actual].append((r - 2, c))
+            # Abajo
+            if r < alto - 1 and laberinto_str_list[r + 1][c] != '#':
+                grafo[nodo_actual].append((r + 2, c))
+            # Izquierda
+            if c > 0 and laberinto_str_list[r][c - 1] != '#':
+                grafo[nodo_actual].append((r, c - 2))
+            # Derecha
+            if c < ancho - 1 and laberinto_str_list[r][c + 1] != '#':
+                grafo[nodo_actual].append((r, c + 2))
+    return grafo
+    
+def encontrar_punto(laberinto, caracter):
+    """
+    Recorre la matriz del laberinto y devuelve las coordenadas (fila, col)
+    del primer carácter que coincida.
+    """
+    for r, fila in enumerate(laberinto):
+        for c, celda in enumerate(fila):
+            if celda == caracter:
+                return (r, c)
+    return None # Devuelve None si no encuentra el carácter
 
 def convertir_camino_a_instrucciones(camino):
     if not camino or len(camino) < 2:

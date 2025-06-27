@@ -1,52 +1,54 @@
-# visualizacion.py
+# --- visualizacion.py ---
 import matplotlib.pyplot as plt
+import numpy as np
 
-def visualizar_todos_los_caminos(laberinto_str, todos_los_caminos, mejor_camino, height, width):
-    """
-    Visualiza todos los caminos encontrados en un solo gráfico.
-    Esta versión es más robusta y está diseñada para funcionar.
-    """
-    if not todos_los_caminos:
-        print("No hay caminos para visualizar.")
+def visualizar_resultados(laberinto_str, resultados, inicio, fin):
+    if not resultados:
+        print("No hay resultados para visualizar.")
         return
 
-    fig, ax = plt.subplots(figsize=(width/1.5, height/1.5))
-    ax.set_facecolor('black') # Fondo negro
-    
-    # Dibujar caminos y celdas transitables
-    for r in range(height):
-        for c in range(width):
-            if laberinto_str[r][c] != '#':
-                ax.add_patch(plt.Rectangle((c, r), 1, 1, color='white', fill=True))
+    # ... (código para preparar grid_numerico se queda igual) ...
+    alto = len(laberinto_str)
+    ancho = len(laberinto_str[0])
+    grid_numerico = np.zeros((alto, ancho))
+    for r in range(alto):
+        for c in range(ancho):
+            if laberinto_str[r][c] == '#':
+                grid_numerico[r, c] = 0
+            else:
+                grid_numerico[r, c] = 1
 
-    # Marcar inicio y fin
-    if todos_los_caminos:
-        start_node = todos_los_caminos[0]["coordenadas"][0]
-        end_node = todos_los_caminos[0]["coordenadas"][-1]
-        ax.add_patch(plt.Rectangle((start_node[1], start_node[0]), 1, 1, color='cyan', fill=True))
-        ax.add_patch(plt.Rectangle((end_node[1], end_node[0]), 1, 1, color='red', fill=True))
+    # --- Generar gráficos individuales (Ahora con la exploración) ---
+    print("Generando gráficos individuales con visualización de exploración...")
+    for nombre, data in resultados.items():
+        camino = data.get("camino")
+        visitados = data.get("visitados", set())
 
-    # Colores para los caminos (que no son el mejor)
-    colores = ['blue', 'orange', 'purple', 'yellow', 'magenta']
-    
-    # Dibujar todos los caminos secundarios
-    for i, data_camino in enumerate(todos_los_caminos):
-        camino_coords = data_camino["coordenadas"]
-        if tuple(camino_coords) == tuple(mejor_camino["coordenadas"]):
-            continue
+        fig_ind, ax_ind = plt.subplots(figsize=(10, 5))
+        ax_ind.imshow(grid_numerico, cmap='gray_r', origin='upper')
+
+        # DIBUJAR NODOS VISITADOS (La clave)
+        if visitados:
+            y_visitados, x_visitados = zip(*visitados)
+            ax_ind.scatter(x_visitados, y_visitados, s=15, color='gray', alpha=0.3, label='Nodos Explorados')
+
+        # Dibujar el camino final si existe
+        if camino:
+            y_camino, x_camino = zip(*camino)
+            ax_ind.plot(x_camino, y_camino, marker='o', markersize=3, linestyle='-', color='cyan', label='Camino Final')
         
-        camino_x, camino_y = zip(*[(c + 0.5, r + 0.5) for r, c in camino_coords])
-        ax.plot(camino_x, camino_y, color=colores[i % len(colores)], linewidth=2, alpha=0.7, label=data_camino["nombre"])
+        # Marcar inicio y fin
+        ax_ind.plot(inicio[1], inicio[0], 'p', markersize=12, color='lime', label='Inicio')
+        ax_ind.plot(fin[1], fin[0], '*', markersize=15, color='gold', label='Fin')
 
-    # Dibujar el MEJOR camino al final, más grueso y en verde brillante
-    if mejor_camino:
-        mejor_camino_coords = mejor_camino["coordenadas"]
-        mejor_x, mejor_y = zip(*[(c + 0.5, r + 0.5) for r, c in mejor_camino_coords])
-        ax.plot(mejor_x, mejor_y, color='lime', linewidth=4.5, alpha=1.0, zorder=10, label=f"★ MEJOR: {mejor_camino['nombre']}")
+        pasos = data.get("pasos", 0)
+        ax_ind.set_title(f'"{nombre}" | Pasos: {pasos} | Nodos Explorados: {len(visitados)}')
+        ax_ind.set_xticks([])
+        ax_ind.set_yticks([])
+        ax_ind.legend()
+        plt.tight_layout()
 
-    ax.invert_yaxis()
-    ax.set_aspect('equal', adjustable='box')
-    plt.title("Análisis Comparativo de Rutas", color='white')
-    plt.legend()
-    plt.xticks([])
-    plt.yticks([])
+        nombre_archivo_ind = f'exploracion_{nombre.replace(" ", "_").lower()}.png'
+        plt.savefig(nombre_archivo_ind)
+        print(f"- Gráfico de {nombre} guardado en '{nombre_archivo_ind}'")
+        plt.close(fig_ind)
