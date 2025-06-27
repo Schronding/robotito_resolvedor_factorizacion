@@ -1,39 +1,8 @@
 # --- main.py ---
 from algoritmos import *
 from utils import *
-from comunicacion_arduino import enviar_instrucciones
-from visualizacion import visualizar_resultados
-
-# Traducción final y verificada de image_ef9b64.png
-laberinto_real_0 = [
-    "#####################",
-    "#S# # ### ### ###   #",
-    "# # # # # # # # # # #",
-    "# # ### # # ### # # #",
-    "#   #   # #   #   # #",
-    "### ####### ### ### #",
-    "# # #     # #   #   #",
-    "# # # ##### # ##### #",
-    "#   # #   # #   #   #",
-    "##### # ### ### # ###",
-    "#####################"
-]
-
-laberinto_real_1 = [
-
-    # A B C D E F G H I J
-    "#####################", # 1 superior  - 1 absoluto
-    "# # # $ $ # $ $ # # #", # 1 medio     - 2 absoluto
-    "#$#$#$#####$#####$#$#", # 1 inferior  - 3 absoluto
-    "# $ $ $ $ # $ $ $ $ #", # 2 medio     - 4 absoluto
-    "#####$#$###$###$#####", # 2 inferior  - 5 absoluto
-    "# # $ $ # # # # # $ #", # 3 medio     - 6 absoluto
-    "#$###$###$#$#$#$#$#$#", # 3 inferior  - 7 absoluto
-    "# $ $ $ $ $ $ $ # # #", # 4 medio     - 8 absoluto
-    "#$###$###$#####$###$#", # 4 inferior  - 9 absoluto
-    "# # $ # $ $ $ # $ $ #", # 5 medio    - 10 absoluto
-    "#####################", # 5 inferior - 11 absoluto
-]
+from comunicacion_arduino import *
+from visualizacion import *
 
 laberinto_real_str = [
 
@@ -97,17 +66,23 @@ def main():
         print("\n--- INICIANDO FASE DE VISUALIZACIÓN ---")
         visualizar_resultados(laberinto_real_str, resultados, inicio, fin)
 
-        # La lógica de ranking y envío a Arduino puede ir después de visualizar
-        mejor_opcion = resultados[min(resultados, key=lambda k: resultados[k]['pasos'])]
-        print(f"\nMejor opción seleccionada: {min(resultados, key=lambda k: resultados[k]['pasos'])} con {mejor_opcion['pasos']} pasos.")
-        
-        # 2. Enviar a EEPROM
-        instrucciones_finales = mejor_opcion['instrucciones']
-        print(f"Instrucciones generadas: {instrucciones_finales}")
-        print("Comunicando con Arduino para guardar en EEPROM (lógica pendiente)...")
-        # enviar_instrucciones_a_arduino(instrucciones_finales)
-    else:
-        print("\nNo se encontró ninguna solución por ningún algoritmo.")
+    # --- FASE INTERACTIVA: RANKING Y ENVÍO A ARDUINO ---
+    print("\n--- RANKING DE RESULTADOS (mejor a peor según número de pasos) ---")
+    
+    ranking = sorted(resultados.items(), key=lambda item: item[1]['pasos'])
+    
+    for i, (nombre, data) in enumerate(ranking):
+        rank_num = i
+        pasos = data['pasos']
+        instrucciones = data['instrucciones']
+        print(f" {rank_num}. Algoritmo: {nombre}")
+        print(f"    Pasos: {pasos-1} | Longitud de Instrucciones: {len(instrucciones)}")
+        print(f"    Instrucciones: {instrucciones}")
+
+    # Llamada única a la función de comunicación
+    manejar_comunicacion_con_arduino(ranking)
+    
+    print("\n--- PROYECTO FINALIZADO ---")
 
 if __name__ == "__main__":
     main()
