@@ -38,28 +38,34 @@ def main():
 
 
     algoritmos = {
-        "BFS": encontrar_camino_bfs, 
-        "DFS": encontrar_camino_dfs,
-        "Dijkstra": encontrar_camino_dijkstra, 
-        "A*": encontrar_camino_a_star,
-        "Flood Fill": encontrar_camino_flood_fill,
-        "Wall Follower (Right)": encontrar_camino_wall_follower_right,
-        "Wall Follower (Left)": encontrar_camino_wall_follower_left,
+        "BFS": lambda lab, ini, fin: encontrar_camino_bfs(lab, ini, fin),
+        "DFS": lambda lab, ini, fin: encontrar_camino_dfs(lab, ini, fin),
+        "Dijkstra (Simple)": lambda lab, ini, fin: encontrar_camino_dijkstra(lab, ini, fin, costo_giro=0),
+        "A* (Simple)": lambda lab, ini, fin: encontrar_camino_a_star(lab, ini, fin, costo_giro=0),
+        "Dijkstra (Penaliza Giros)": lambda lab, ini, fin: encontrar_camino_dijkstra(lab, ini, fin, costo_giro=1.5),
+        "A* (Penaliza Giros)": lambda lab, ini, fin: encontrar_camino_a_star(lab, ini, fin, costo_giro=1.5),
+        "Flood Fill": lambda lab, ini, fin: encontrar_camino_flood_fill(lab, ini, fin),
+        "Wall Follower (Right)": lambda lab, ini, fin: encontrar_camino_wall_follower_right(lab, ini, fin),
+        "Wall Follower (Left)": lambda lab, ini, fin: encontrar_camino_wall_follower_left(lab, ini, fin),
     }
 
     resultados = {}
     for nombre, func_algoritmo in algoritmos.items():
         print(f"\nEjecutando algoritmo: {nombre}...")
-        camino, visitados = func_algoritmo(laberinto_real_str, inicio, fin)
+        # AHORA RECIBIMOS TRES VALORES
+        camino, visitados, costo = func_algoritmo(laberinto_real_str, inicio, fin)
+        
         if camino:
-            print(f"-> ¡ÉXITO! {nombre} encontró un camino de {len(camino)} pasos.")
+            print(f"-> ¡ÉXITO! {nombre} encontró un camino de {len(camino) - 1} movimientos.")
             resultados[nombre] = {
-                "camino": camino, 
+                "camino": camino,
                 "visitados": visitados,
                 "pasos": len(camino),
-                "instrucciones": convertir_camino_a_instrucciones(camino)}
+                "costo": costo,  # <-- GUARDAMOS EL NUEVO DATO
+                "instrucciones": convertir_camino_a_instrucciones(camino)
+            }
         else:
-            print(f"-> {nombre} no encontró un camino, pero exploro {len(visitados)} nodos.")
+            print(f"-> {nombre} no encontró un camino, pero exploró {len(visitados)} nodos.")
 
     if resultados:
         # 1. Visualizar (Llamada a la nueva función)
@@ -67,16 +73,19 @@ def main():
         visualizar_resultados(laberinto_real_str, resultados, inicio, fin)
 
     # --- FASE INTERACTIVA: RANKING Y ENVÍO A ARDUINO ---
-    print("\n--- RANKING DE RESULTADOS (mejor a peor según número de pasos) ---")
+    print("\n--- RANKING DE RESULTADOS (mejor a peor según COSTO) ---")
     
-    ranking = sorted(resultados.items(), key=lambda item: item[1]['pasos'])
+    # Ordenar los resultados por el COSTO total
+    ranking = sorted(resultados.items(), key=lambda item: item[1]['costo'])
     
     for i, (nombre, data) in enumerate(ranking):
         rank_num = i
         pasos = data['pasos']
+        costo_total = data['costo']
         instrucciones = data['instrucciones']
+        # Mostramos el costo en el ranking
         print(f" {rank_num}. Algoritmo: {nombre}")
-        print(f"    Pasos: {pasos-1} | Longitud de Instrucciones: {len(instrucciones)}")
+        print(f"    Pasos: {pasos-1} | Costo Total: {costo_total:.2f} | Instrucciones: {len(instrucciones)}")
         print(f"    Instrucciones: {instrucciones}")
 
     # Llamada única a la función de comunicación
