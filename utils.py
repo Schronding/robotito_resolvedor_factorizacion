@@ -14,6 +14,7 @@ START = 2
 END = 3
 
 # Mapeos para algoritmos basados en dirección indexada
+DIRECTIONS = [(-1, 0), (1, 0), (0, -1), (0, 1)] # N, S, W, E
 DIR_TO_IDX = {(-1,0):0, (0,1):1, (1,0):2, (0,-1):3} # N, E, S, W
 
 def parse_laberinto(laberinto_str_list):
@@ -48,46 +49,43 @@ def parse_laberinto(laberinto_str_list):
         
     return mapa_numerico, pos_inicio, pos_fin, height, width
 
-def convertir_camino_a_instrucciones(camino_coordenadas):
-    """Convierte una lista de coordenadas (r, c) a una cadena de instrucciones F, L, R."""
-    if not camino_coordenadas or len(camino_coordenadas) < 2:
-        return ""
-        
+# ... otras funciones de utils ...
+
+def convertir_camino_a_instrucciones(camino):
+    if not camino or len(camino) < 2:
+        return []
+
     instrucciones = []
-    # Determinar la dirección inicial
-    dr_actual, dc_actual = (camino_coordenadas[1][0] - camino_coordenadas[0][0], camino_coordenadas[1][1] - camino_coordenadas[0][1])
-    dir_idx_actual = DIR_TO_IDX.get((dr_actual, dc_actual))
-    
-    if dir_idx_actual is None:
-        # Esto puede pasar si el primer movimiento no es cardinal, lo que es un error en la generación del camino.
-        # Por simplicidad, asumimos una dirección inicial (ej. Este) si el robot está en 'S' y se mueve.
-        # Una mejor solución es asegurar que el camino siempre sea válido.
-        # Aquí, para el primer paso, asumimos que siempre es 'F'.
-        # La lógica original tenía una suposición similar.
-        print("Advertencia: Movimiento inicial no cardinal. La primera instrucción puede ser incorrecta.")
-        dir_idx_actual = 1 # Asumir Este por defecto
-    
-    instrucciones.append('F') # El primer movimiento siempre es avanzar.
+    # Orientación: 0:Arriba, 1:Derecha, 2:Abajo, 3:Izquierda
+    # Asumimos que el robot empieza mirando hacia abajo (Sur)
+    orientacion_actual = 2  
 
-    for i in range(1, len(camino_coordenadas) - 1):
-        dr_nuevo, dc_nuevo = (camino_coordenadas[i+1][0] - camino_coordenadas[i][0], camino_coordenadas[i+1][1] - camino_coordenadas[i][1])
-        dir_idx_nuevo = DIR_TO_IDX.get((dr_nuevo, dc_nuevo))
+    for i in range(len(camino) - 1):
+        actual = camino[i]
+        siguiente = camino[i+1]
 
-        if dir_idx_nuevo is None:
-            continue # Ignorar movimientos no válidos
+        dr, dc = siguiente[0] - actual[0], siguiente[1] - actual[1]
 
-        if dir_idx_nuevo == dir_idx_actual:
-            instrucciones.append('F')
-        elif dir_idx_nuevo == (dir_idx_actual + 1) % 4: # Giro a la derecha
-            instrucciones.extend(['R', 'F'])
-        elif dir_idx_nuevo == (dir_idx_actual - 1 + 4) % 4: # Giro a la izquierda
-            instrucciones.extend(['L', 'F'])
-        else: # Giro de 180 grados
-            instrucciones.extend(['R', 'R', 'F'])
+        if dr == 2: orientacion_objetivo = 2  # Abajo
+        elif dr == -2: orientacion_objetivo = 0 # Arriba
+        elif dc == 2: orientacion_objetivo = 1  # Derecha
+        elif dc == -2: orientacion_objetivo = 3  # Izquierda
+        else: continue
+
+        diff = (orientacion_objetivo - orientacion_actual + 4) % 4
         
-        dir_idx_actual = dir_idx_nuevo
+        if diff == 1: # 90 grados a la derecha
+            instrucciones.append('R')
+        elif diff == 3: # 90 grados a la izquierda
+            instrucciones.append('L')
+        elif diff == 2: # 180 grados
+            instrucciones.append('R')
+            instrucciones.append('R')
         
-    return "".join(instrucciones)
+        instrucciones.append('F')
+        orientacion_actual = orientacion_objetivo
+        
+    return "".join(instrucciones) # Unimos todo en un solo string
 
 def medir_tiempo(func):
     """Decorador para medir el tiempo de ejecución de una función."""

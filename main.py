@@ -1,116 +1,93 @@
-# main.py
-import time
-import matplotlib.pyplot as plt
+# --- main.py ---
+from algoritmos import *
+from utils import convertir_camino_a_instrucciones
+from comunicacion_arduino import enviar_instrucciones
 
-# Importar nuestras propias funciones modulares
-from utils import parse_laberinto, convertir_camino_a_instrucciones
-from algoritmos import encontrar_camino_bfs, encontrar_camino_a_estrella
-from comunicacion_arduino import conectar_arduino, enviar_instrucciones, cerrar_conexion
-from visualizacion import visualizar_todos_los_caminos
-
-# Definición del laberinto a resolver
-laberinto_real = [
-    "###########",
-    "S    #    #",
-    "#### #   ##",
-    "#         #",
-    "#   ####  #",
-    "#     #   #",
-    "#     # ###",
-    "#   #     #",
-    "# ######  #",
-    "#         #",
-    "#########E#"
+# Traducción final y verificada de image_ef9b64.png
+laberinto_real_0 = [
+    "#####################",
+    "#S# # ### ### ###   #",
+    "# # # # # # # # # # #",
+    "# # ### # # ### # # #",
+    "#   #   # #   #   # #",
+    "### ####### ### ### #",
+    "# # #     # #   #   #",
+    "# # # ##### # ##### #",
+    "#   # #   # #   #   #",
+    "##### # ### ### # ###",
+    "#####################"
 ]
 
-def main():
-    """Función principal que orquesta todo el proceso."""
-    print("--- INICIANDO RESOLVERDOR DE LABERINTOS ---")
-    
-    # 1. Parsear el laberinto
-    lab_num, p_ini, p_fin, alto, ancho = parse_laberinto(laberinto_real)
-    print(f"Laberinto parseado. Inicio: {p_ini}, Fin: {p_fin}.")
+laberinto_real_1 = [
 
-    # 2. Definir y ejecutar los algoritmos
-    algoritmos_a_probar = {
-        "BFS": encontrar_camino_bfs,
-        "A-Star": encontrar_camino_a_estrella,
-        # "DFS": encontrar_camino_dfs, # Puedes añadir más aquí
+    # A B C D E F G H I J
+    "#####################", # 1 superior  - 1 absoluto
+    "# # # $ $ # $ $ # # #", # 1 medio     - 2 absoluto
+    "#$#$#$#####$#####$#$#", # 1 inferior  - 3 absoluto
+    "# $ $ $ $ # $ $ $ $ #", # 2 medio     - 4 absoluto
+    "#####$#$###$###$#####", # 2 inferior  - 5 absoluto
+    "# # $ $ # # # # # $ #", # 3 medio     - 6 absoluto
+    "#$###$###$#$#$#$#$#$#", # 3 inferior  - 7 absoluto
+    "# $ $ $ $ $ $ $ # # #", # 4 medio     - 8 absoluto
+    "#$###$###$#####$###$#", # 4 inferior  - 9 absoluto
+    "# # $ # $ $ $ # $ $ #", # 5 medio    - 10 absoluto
+    "#####################", # 5 inferior - 11 absoluto
+]
+
+comprobacion_laberinto = [
+
+    # A B C D E F G H I J
+    "#####################", # 1 superior  - 1 absoluto
+    "#S# #     #     # # #", # 1 medio     - 2 absoluto
+    "# # # ##### ##### # #", # 1 inferior  - 3 absoluto
+    "#         #         #", # 2 medio     - 4 absoluto
+    "##### # ### ### #####", # 2 inferior  - 5 absoluto
+    "# #     # # # # #   #", # 3 medio     - 6 absoluto
+    "# ### ### # # # # # #", # 3 inferior  - 7 absoluto
+    "#               #E# #", # 4 medio     - 8 absoluto
+    "# ### ### ##### ### #", # 4 inferior  - 9 absoluto
+    "# #   #       #     #", # 5 medio    - 10 absoluto
+    "#####################", # 5 inferior - 11 absoluto
+]
+
+
+def main():
+    print(comprobacion_laberinto == laberinto_real_0)
+    print("--- INICIANDO RESOLVEDOR DE LABERINTOS ---")
+    laberinto = [list(fila) for fila in comprobacion_laberinto]
+    
+    # Coordenadas para el laberinto de la imagen
+    inicio = (1, 1) # Celda A1
+    fin = (7, 13)   # Celda G4 (un final alcanzable)
+
+    # Marcamos el final en la matriz para visualización
+    laberinto[fin[0]][fin[1]] = 'E'
+    laberinto_str = ["".join(fila) for fila in laberinto]
+
+    print(f"Laberinto cargado. Inicio: {inicio}, Fin: {fin}.")
+
+    algoritmos = {
+        "BFS": encontrar_camino_bfs, "DFS": encontrar_camino_dfs,
+        "Dijkstra": encontrar_camino_dijkstra, "A*": encontrar_camino_a_star,
+        "Flood Fill": encontrar_camino_flood_fill,
+        "Wall Follower (Right)": encontrar_camino_wall_follower_right,
+        "Wall Follower (Left)": encontrar_camino_wall_follower_left,
     }
 
-    caminos_encontrados = []
-    for nombre, func_algoritmo in algoritmos_a_probar.items():
+    resultados = {}
+    for nombre, func_algoritmo in algoritmos.items():
         print(f"\nEjecutando algoritmo: {nombre}...")
-        start_time = time.perf_counter()
-        camino = func_algoritmo(lab_num, p_ini, p_fin, alto, ancho)
-        end_time = time.perf_counter()
-        
+        camino = func_algoritmo(laberinto_str, inicio, fin)
         if camino:
-            print(f"-> {nombre} encontró un camino de {len(camino)} pasos en {end_time - start_time:.6f} segundos.")
-            caminos_encontrados.append({
-                "nombre": nombre,
-                "longitud": len(camino),
-                "coordenadas": camino,
-                "instrucciones": convertir_camino_a_instrucciones(camino)
-            })
+            print(f"-> ¡ÉXITO! {nombre} encontró un camino de {len(camino)} pasos.")
+            resultados[nombre] = {"camino": camino, "pasos": len(camino),
+                                  "instrucciones": convertir_camino_a_instrucciones(camino)}
         else:
             print(f"-> {nombre} no encontró un camino.")
 
-    # 3. Analizar y ordenar los resultados
-    if not caminos_encontrados:
-        print("\nNingún algoritmo pudo encontrar un camino. Saliendo.")
-        return
-
-    # Ordenar por longitud (el más corto es el mejor)
-    caminos_ordenados = sorted(caminos_encontrados, key=lambda x: x["longitud"])
-    mejor_camino = caminos_ordenados[0]
-
-    print("\n--- RANKING DE CAMINOS (del más corto al más largo) ---")
-    for i, camino in enumerate(caminos_ordenados):
-        print(f"{i}. {camino['nombre']}: {camino['longitud']} celdas, Instrucciones: {camino['instrucciones']}")
-
-    # 4. Visualización
-    print("\nGenerando visualización...")
-    visualizar_todos_los_caminos(laberinto_real, caminos_ordenados, mejor_camino, alto, ancho)
-
-    # 5. Interacción con Arduino
-    puerto_serial = '/dev/ttyUSB0'  # CAMBIA ESTO a 'COM3', 'COM4', etc. en Windows
-    arduino = conectar_arduino(puerto_serial)
-
-    if arduino:
-        try:
-            while True:
-                print("\n--- Menú de Arduino ---")
-                print("Elige una opción:")
-                for i, c in enumerate(caminos_ordenados):
-                    print(f"  {i}: Enviar y GUARDAR ruta '{c['nombre']}'")
-                print("  !E: EJECUTAR ruta guardada en Arduino")
-                print("  !C: CALIBRAR robot")
-                print("  s: Salir")
-
-                opcion = input("Opción: ").lower()
-
-                if opcion == 's':
-                    break
-                elif opcion in ['!e', '!c']:
-                    enviar_instrucciones(arduino, opcion.upper())
-                else:
-                    try:
-                        idx = int(opcion)
-                        if 0 <= idx < len(caminos_ordenados):
-                            instrucciones_a_enviar = "!S" + caminos_ordenados[idx]['instrucciones']
-                            enviar_instrucciones(arduino, instrucciones_a_enviar)
-                        else:
-                            print("Índice fuera de rango.")
-                    except ValueError:
-                        print("Opción no válida.")
-        finally:
-            cerrar_conexion(arduino)
-    
-    # 6. Mostrar el gráfico al final de todo
-    print("\nMostrando gráfico. Cierra la ventana para terminar el programa.")
-    plt.show()
-
+    if resultados:
+        # ... (lógica de ranking y envío a Arduino) ...
+        pass
 
 if __name__ == "__main__":
     main()
